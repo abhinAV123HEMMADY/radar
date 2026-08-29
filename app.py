@@ -1,10 +1,9 @@
-import asyncio
 import json
 from pathlib import Path
 import streamlit as st
 from dotenv import load_dotenv
 
-from agent import gather_research_notes, synthesize_briefing, load_cached_briefing, save_cached_briefing
+from agent import gather_research_notes, synthesize_briefing, load_cached_briefing, save_cached_briefing, get_event_loop
 from models import CompetitiveBriefing
 
 load_dotenv(Path(__file__).parent / ".env")
@@ -430,7 +429,7 @@ if st.session_state.displayed_company:
                     research_notes, competitors, per_competitor_notes = await gather_research_notes(company)
                     return await synthesize_briefing(company, research_notes, competitors, per_competitor_notes)
 
-                briefing: CompetitiveBriefing = asyncio.run(_run_analysis())
+                briefing: CompetitiveBriefing = get_event_loop().run_until_complete(_run_analysis())
                 save_cached_briefing(company, briefing)
                 cached_at = None
 

@@ -380,5 +380,26 @@ async def _run_competitive_intelligence_async(company: str, force_refresh: bool 
     return briefing
 
 
+_loop: asyncio.AbstractEventLoop | None = None
+
+
+def get_event_loop() -> asyncio.AbstractEventLoop:
+    """A persistent event loop, reused across every call in this process.
+
+    Each ChatOpenAI/AsyncOpenAI client we create opens its own httpx.AsyncClient
+    and is never explicitly closed. If it's later garbage-collected while a
+    *different* event loop is running — which happens if every search calls
+    asyncio.run() fresh, since that creates and destroys a new loop each time —
+    the finalizer tries to close a connection against a loop that's already
+    gone, raising "RuntimeError: Event loop is closed" for a completely
+    unrelated later search. Reusing one loop for the process's lifetime (a
+    Streamlit app's process stays alive across many searches) avoids that.
+    """
+    global _loop
+    if _loop is None or _loop.is_closed():
+        _loop = asyncio.new_event_loop()
+    return _loop
+
+
 def run_competitive_intelligence(company: str, force_refresh: bool = False) -> CompetitiveBriefing:
-    return asyncio.run(_run_competitive_intelligence_async(company, force_refresh))
+    return get_event_loop().run_until_complete(_run_competitive_intelligence_async(company, force_refresh))
