@@ -1,0 +1,581 @@
+<title>Briefing Template Spec</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
+
+:root{
+  --paper:#f2f0ea;
+  --paper-raised:#fbfaf7;
+  --ink:#1a1a17;
+  --ink-muted:#5c594f;
+  --ink-faint:#918d80;
+  --rule:#d8d4c8;
+  --rule-strong:#b9b4a4;
+  --stamp:#a6291f;
+  --stamp-tint:#f6e9e7;
+  --good:#0a6e52;
+  --good-tint:#e7f2ec;
+  --warn:#a3660a;
+  --warn-tint:#f6eee0;
+  --mono-ff:'IBM Plex Mono',ui-monospace,monospace;
+  --sans-ff:'IBM Plex Sans',system-ui,sans-serif;
+  --serif-ff:'Fraunces',Georgia,serif;
+}
+
+*{box-sizing:border-box;}
+body{
+  background:var(--paper);
+  color:var(--ink);
+  font-family:var(--sans-ff);
+  margin:0;
+  padding:0 24px 120px;
+}
+::selection{background:var(--stamp-tint);color:var(--stamp);}
+
+.sheet{
+  max-width:840px;
+  margin:0 auto;
+}
+
+/* ── Cover ─────────────────────────────────────────────────────────── */
+.cover{
+  padding:64px 0 40px;
+  border-bottom:2px solid var(--ink);
+}
+.cover-stamp{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  font-family:var(--mono-ff);
+  font-size:11px;
+  font-weight:600;
+  letter-spacing:.14em;
+  text-transform:uppercase;
+  color:var(--stamp);
+  border:1.5px solid var(--stamp);
+  padding:5px 10px;
+  border-radius:3px;
+  transform:rotate(-1deg);
+  margin-bottom:28px;
+}
+.cover-stamp::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--stamp);}
+h1.title{
+  font-family:var(--serif-ff);
+  font-optical-sizing:auto;
+  font-weight:600;
+  font-size:clamp(2.4rem,5vw,3.4rem);
+  line-height:1.04;
+  letter-spacing:-0.01em;
+  margin:0 0 18px;
+  text-wrap:balance;
+  max-width:15ch;
+}
+.cover-dek{
+  font-size:1.08rem;
+  line-height:1.6;
+  color:var(--ink-muted);
+  max-width:60ch;
+  margin:0 0 32px;
+}
+.meta-row{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:20px;
+  border-top:1px solid var(--rule);
+  padding-top:18px;
+}
+.meta-cell{
+  font-family:var(--mono-ff);
+  font-size:11.5px;
+  line-height:1.5;
+  padding:0 20px 0 0;
+  border-right:1px solid var(--rule);
+}
+.meta-cell:last-child{border-right:none;padding-right:0;}
+.meta-cell b{
+  display:block;
+  color:var(--ink-faint);
+  text-transform:uppercase;
+  letter-spacing:.1em;
+  font-weight:500;
+  font-size:9.5px;
+  margin-bottom:4px;
+}
+
+/* ── Intro ─────────────────────────────────────────────────────────── */
+.intro{
+  padding:40px 0 48px;
+  border-bottom:1px solid var(--rule);
+  display:grid;
+  grid-template-columns:120px 1fr;
+  gap:28px;
+}
+.intro-label{
+  font-family:var(--mono-ff);
+  font-size:11px;
+  letter-spacing:.1em;
+  text-transform:uppercase;
+  color:var(--ink-faint);
+  padding-top:4px;
+}
+.intro p{
+  font-size:1.02rem;
+  line-height:1.72;
+  margin:0 0 16px;
+  max-width:64ch;
+}
+.intro p:last-child{margin-bottom:0;}
+.intro strong{color:var(--ink);font-weight:600;}
+
+/* ── Anatomy strip ─────────────────────────────────────────────────── */
+.anatomy{
+  padding:36px 0 44px;
+  border-bottom:1px solid var(--rule);
+}
+.anatomy-head{
+  font-family:var(--mono-ff);
+  font-size:11px;
+  letter-spacing:.1em;
+  text-transform:uppercase;
+  color:var(--ink-faint);
+  margin-bottom:18px;
+}
+.anatomy-list{
+  display:grid;
+  grid-template-columns:repeat(6,1fr);
+  gap:1px;
+  background:var(--rule);
+  border:1px solid var(--rule);
+}
+.anatomy-item{
+  background:var(--paper-raised);
+  padding:14px 12px;
+}
+.anatomy-num{
+  font-family:var(--serif-ff);
+  font-size:1.3rem;
+  font-weight:600;
+  color:var(--stamp);
+  line-height:1;
+  margin-bottom:8px;
+}
+.anatomy-name{
+  font-size:12.5px;
+  font-weight:600;
+  line-height:1.3;
+}
+
+/* ── Sections ──────────────────────────────────────────────────────── */
+.section{
+  display:grid;
+  grid-template-columns:120px 1fr;
+  gap:28px;
+  padding:48px 0;
+  border-bottom:1px solid var(--rule);
+}
+.section:last-of-type{border-bottom:none;}
+.section-tab{padding-top:4px;}
+.section-num{
+  font-family:var(--serif-ff);
+  font-size:2.6rem;
+  font-weight:600;
+  color:var(--rule-strong);
+  line-height:1;
+}
+.section-kind{
+  font-family:var(--mono-ff);
+  font-size:10.5px;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+  color:var(--ink-faint);
+  margin-top:10px;
+  line-height:1.5;
+}
+
+.section-title{
+  font-family:var(--serif-ff);
+  font-weight:600;
+  font-size:1.5rem;
+  margin:0 0 4px;
+  letter-spacing:-0.005em;
+}
+.section-field{
+  font-family:var(--mono-ff);
+  font-size:12px;
+  color:var(--stamp);
+  margin:0 0 16px;
+}
+.section-purpose{
+  font-size:1rem;
+  line-height:1.7;
+  color:var(--ink);
+  max-width:60ch;
+  margin:0 0 18px;
+}
+.section-purpose b{font-weight:600;}
+.rule-line{
+  font-size:.92rem;
+  line-height:1.65;
+  color:var(--ink-muted);
+  max-width:60ch;
+  margin:0 0 20px;
+  padding-left:14px;
+  border-left:2px solid var(--rule-strong);
+}
+
+/* specimen card */
+.specimen{
+  background:var(--paper-raised);
+  border:1px solid var(--rule);
+  border-radius:2px;
+  padding:18px 20px;
+  margin-top:6px;
+  position:relative;
+}
+.specimen::before{
+  content:"SPECIMEN — LIVE TOOL OUTPUT";
+  position:absolute;
+  top:-9px;
+  left:16px;
+  background:var(--paper);
+  padding:0 8px;
+  font-family:var(--mono-ff);
+  font-size:9px;
+  letter-spacing:.1em;
+  color:var(--ink-faint);
+}
+.specimen p{margin:0 0 10px;font-size:.92rem;line-height:1.6;}
+.specimen p:last-child{margin-bottom:0;}
+.specimen-src{
+  font-size:.82rem;
+  color:var(--ink-muted);
+  padding:8px 0 0;
+  border-top:1px dashed var(--rule);
+  margin-top:10px;
+}
+.specimen-src div{margin-bottom:6px;}
+.specimen-src div:last-child{margin-bottom:0;}
+.specimen-src a{color:var(--ink-muted);font-family:var(--mono-ff);font-size:.75rem;word-break:break-all;}
+
+/* good/bad pair */
+.pair{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:6px;}
+.pair-card{border:1px solid var(--rule);border-radius:2px;padding:14px 16px;background:var(--paper-raised);}
+.pair-card.good{border-left:3px solid var(--good);}
+.pair-card.bad{border-left:3px solid var(--stamp);}
+.pair-label{
+  font-family:var(--mono-ff);
+  font-size:10px;
+  letter-spacing:.1em;
+  text-transform:uppercase;
+  font-weight:600;
+  margin-bottom:8px;
+}
+.pair-card.good .pair-label{color:var(--good);}
+.pair-card.bad .pair-label{color:var(--stamp);}
+.pair-card p{font-size:.88rem;line-height:1.55;margin:0;font-style:italic;color:var(--ink);}
+
+/* feature matrix specimen */
+.mini-table{width:100%;border-collapse:collapse;font-size:.84rem;margin-top:6px;}
+.mini-table th,.mini-table td{border:1px solid var(--rule);padding:7px 10px;text-align:center;}
+.mini-table th{
+  background:var(--paper);
+  font-family:var(--mono-ff);
+  font-size:9.5px;
+  letter-spacing:.06em;
+  text-transform:uppercase;
+  color:var(--ink-faint);
+  font-weight:600;
+}
+.mini-table td:first-child,.mini-table th:first-child{text-align:left;font-weight:600;}
+.tag-yes{color:var(--good);font-weight:700;}
+.tag-partial{color:var(--warn);font-weight:700;}
+.tag-no{color:var(--ink-faint);}
+
+/* quadrant legend */
+.quad-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:6px;}
+.quad{border:1px solid var(--rule);border-radius:2px;padding:12px 14px;background:var(--paper-raised);}
+.quad-name{font-family:var(--mono-ff);font-size:11px;font-weight:600;letter-spacing:.04em;margin-bottom:4px;}
+.quad-def{font-size:.82rem;color:var(--ink-muted);line-height:1.5;}
+.quad.qw .quad-name{color:var(--good);}
+.quad.bb .quad-name{color:#1f4e8a;}
+.quad.fi .quad-name{color:var(--ink-faint);}
+.quad.mp .quad-name{color:var(--warn);}
+
+/* action specimen */
+.action-row{
+  display:flex;
+  align-items:baseline;
+  gap:10px;
+  font-size:.9rem;
+  padding:10px 0;
+  border-bottom:1px dashed var(--rule);
+}
+.action-row:last-child{border-bottom:none;}
+.action-badge{
+  font-family:var(--mono-ff);
+  font-size:9.5px;
+  font-weight:700;
+  letter-spacing:.05em;
+  color:#1f4e8a;
+  background:#e9eff8;
+  border-radius:2px;
+  padding:2px 6px;
+  white-space:nowrap;
+}
+.action-score{font-family:var(--mono-ff);font-size:.78rem;color:var(--ink-faint);white-space:nowrap;}
+
+/* ── Closing ───────────────────────────────────────────────────────── */
+.closing{padding:48px 0 0;}
+.closing-head{
+  font-family:var(--mono-ff);
+  font-size:11px;
+  letter-spacing:.1em;
+  text-transform:uppercase;
+  color:var(--ink-faint);
+  margin-bottom:18px;
+}
+.principle{
+  display:grid;
+  grid-template-columns:28px 1fr;
+  gap:14px;
+  padding:16px 0;
+  border-top:1px solid var(--rule);
+}
+.principle:last-child{padding-bottom:0;}
+.principle-mark{font-family:var(--serif-ff);font-weight:600;color:var(--stamp);font-size:1.1rem;}
+.principle b{display:block;font-size:.96rem;margin-bottom:4px;}
+.principle p{margin:0;font-size:.9rem;line-height:1.6;color:var(--ink-muted);max-width:58ch;}
+
+.colophon{
+  margin-top:56px;
+  padding-top:20px;
+  border-top:2px solid var(--ink);
+  font-family:var(--mono-ff);
+  font-size:10.5px;
+  color:var(--ink-faint);
+  display:flex;
+  justify-content:space-between;
+  flex-wrap:wrap;
+  gap:8px;
+}
+
+@media (max-width:640px){
+  .intro,.section{grid-template-columns:1fr;}
+  .section-tab{display:flex;align-items:baseline;gap:12px;}
+  .anatomy-list{grid-template-columns:repeat(3,1fr);}
+  .pair,.quad-grid{grid-template-columns:1fr;}
+  .meta-row{grid-template-columns:1fr 1fr;}
+}
+</style>
+
+<div class="sheet">
+
+  <header class="cover">
+    <div class="cover-stamp">Design Spec · Template</div>
+    <h1 class="title">The Competitive Briefing Template</h1>
+    <p class="cover-dek">A fixed output schema that turns raw multi-source research into a document a product manager can act on in one read — not a report to re-read for the decision buried inside it.</p>
+    <div class="meta-row">
+      <div class="meta-cell"><b>Companion tool</b>Radar — competitive intelligence agent</div>
+      <div class="meta-cell"><b>Format</b>6-part structured schema (Pydantic)</div>
+      <div class="meta-cell"><b>Applies to</b>Any company, any competitor set</div>
+      <div class="meta-cell"><b>Version</b>1.0</div>
+    </div>
+  </header>
+
+  <div class="intro">
+    <div class="intro-label">Brief</div>
+    <div>
+      <p>Most "competitive analysis" output is prose a reader has to mine for the actual decision. This template inverts that: every section is designed backward from a question a PM actually asks — <strong>what's the landscape, what can I copy, what's coming for me, what do I do about it</strong> — and every field has a rule that forces the model to answer with a specific, sourced claim instead of a plausible-sounding summary.</p>
+      <p>It was designed alongside the agent that fills it, not after — the schema <em>is</em> the prompt contract. Six sections, each below with its purpose, its field-level rule, and a specimen pulled from a real run of the tool (not a mockup).</p>
+    </div>
+  </div>
+
+  <div class="anatomy">
+    <div class="anatomy-head">Anatomy — six parts, in reading order</div>
+    <div class="anatomy-list">
+      <div class="anatomy-item"><div class="anatomy-num">01</div><div class="anatomy-name">Executive Summary</div></div>
+      <div class="anatomy-item"><div class="anatomy-num">02</div><div class="anatomy-name">Feature Matrix</div></div>
+      <div class="anatomy-item"><div class="anatomy-num">03</div><div class="anatomy-name">Competitor Profile</div></div>
+      <div class="anatomy-item"><div class="anatomy-num">04</div><div class="anatomy-name">Threats</div></div>
+      <div class="anatomy-item"><div class="anatomy-num">05</div><div class="anatomy-name">Opportunities</div></div>
+      <div class="anatomy-item"><div class="anatomy-num">06</div><div class="anatomy-name">Actions (I/E)</div></div>
+    </div>
+  </div>
+
+  <!-- 01 Executive Summary -->
+  <section class="section">
+    <div class="section-tab">
+      <div class="section-num">01</div>
+      <div class="section-kind">Orientation</div>
+    </div>
+    <div>
+      <h2 class="section-title">Executive Summary</h2>
+      <div class="section-field">field: executive_summary — string, 2–3 paragraphs</div>
+      <p class="section-purpose">The one section written for someone who will <b>never</b> open the other five. States who the real competitors are and what the landscape's shape is — not a recap of what follows it.</p>
+      <p class="rule-line">Rule: 2–3 paragraphs, no bullet list. Must name the actual competitor set in the first sentence — never open with a generic "the market is competitive" line.</p>
+      <div class="specimen">
+        <p>"The competitive landscape for productivity and project management tools in 2025 is highly dynamic, with Notion facing significant competition from Trello, Asana, ClickUp, and Coda. Each competitor offers unique strengths and caters to different user needs&hellip; Trello is known for its simplicity and Kanban-style project management, appealing to marketing and operations teams. Asana, on the other hand, is favored by project managers for its robust task management and timeline features&hellip;"</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 02 Feature Matrix -->
+  <section class="section">
+    <div class="section-tab">
+      <div class="section-num">02</div>
+      <div class="section-kind">Scan</div>
+    </div>
+    <div>
+      <h2 class="section-title">Feature Comparison Matrix</h2>
+      <div class="section-field">field: feature_comparison — 5–8 rows × {feature, [competitor, level]}</div>
+      <p class="section-purpose">The at-a-glance table a prose summary can't be. Every row is a feature that actually appeared in research — the model can't invent categories to fill space.</p>
+      <p class="rule-line">Rule: level is exactly one of Yes / Partial / No. "No" is only assigned when research gives no evidence a feature exists — absence isn't assumed.</p>
+      <table class="mini-table">
+        <thead><tr><th>Feature</th><th>Airtable</th><th>Coda</th><th>ClickUp</th><th>Asana</th></tr></thead>
+        <tbody>
+          <tr><td>Free tier</td><td class="tag-yes">Yes</td><td class="tag-yes">Yes</td><td class="tag-yes">Yes</td><td class="tag-yes">Yes</td></tr>
+          <tr><td>Automation capabilities</td><td class="tag-yes">Yes</td><td class="tag-yes">Yes</td><td class="tag-yes">Yes</td><td class="tag-partial">Partial</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- 03 Competitor Profile -->
+  <section class="section">
+    <div class="section-tab">
+      <div class="section-num">03</div>
+      <div class="section-kind">Depth · ×5 dims</div>
+    </div>
+    <div>
+      <h2 class="section-title">Competitor Profile</h2>
+      <div class="section-field">field: pricing / key_features / market_positioning / target_audience / recent_developments — each {content, sources[]}</div>
+      <p class="section-purpose">Five fixed dimensions per competitor. Each is sourced <b>by construction</b> — the schema requires 3–5 citations per dimension, so a claim without a URL behind it can't reach the page.</p>
+      <p class="rule-line">Rule: sources come only from that dimension's own research — never borrowed from a different dimension to pad an empty list. A dimension with nothing to cite ships with an honest empty list, not a filler link.</p>
+      <div class="specimen">
+        <p>"Airtable offers a range of pricing plans starting with a free version that supports up to 5 editors and 1,000 records per base. The Team plan costs $20 per user per month when billed annually, while the Business plan is priced at $45 per user per month&hellip;"</p>
+        <div class="specimen-src">
+          <div>&mdash; "Airtable's paid plans start from $20 per user per month and go up to $45 per user per month" <br><a href="https://thedigitalprojectmanager.com/tools/airtable-pricing">thedigitalprojectmanager.com/tools/airtable-pricing</a></div>
+          <div>&mdash; "Airtable pricing ranges from Free to $45/editor/month on Business plans" <br><a href="https://noloco.io/blog/airtable-pricing">noloco.io/blog/airtable-pricing</a></div>
+        </div>
+      </div>
+      <div class="pair" style="margin-top:16px;">
+        <div class="pair-card good">
+          <div class="pair-label">Ships</div>
+          <p>"$11.99/mo for Prime, $14.99 standalone; includes HD audio and offline downloads."</p>
+        </div>
+        <div class="pair-card bad">
+          <div class="pair-label">Rejected</div>
+          <p>"Outlines the pricing plans available to users."</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 04 Threats -->
+  <section class="section">
+    <div class="section-tab">
+      <div class="section-num">04</div>
+      <div class="section-kind">Defense</div>
+    </div>
+    <div>
+      <h2 class="section-title">Key Threats</h2>
+      <div class="section-field">field: key_threats — string[3–5] per competitor</div>
+      <p class="section-purpose">Names the exact mechanism, not the vibe. A threat must say what specific lever the competitor is pulling and what it blocks — never "has a large user base."</p>
+      <div class="pair">
+        <div class="pair-card good">
+          <div class="pair-label">Ships</div>
+          <p>"Airtable's per-editor billing escalates fast for teams with many occasional contributors — competitors can't match without the same cost structure."</p>
+        </div>
+        <div class="pair-card bad">
+          <div class="pair-label">Rejected</div>
+          <p>"Airtable's pricing could hurt our competitiveness."</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 05 Opportunities -->
+  <section class="section">
+    <div class="section-tab">
+      <div class="section-num">05</div>
+      <div class="section-kind">Offense</div>
+    </div>
+    <div>
+      <h2 class="section-title">Opportunities</h2>
+      <div class="section-field">field: opportunities — string[3–5] per competitor</div>
+      <p class="section-purpose">The mirror of 04: names the competitor's specific gap and what to build to exploit it — not "we should innovate more."</p>
+      <div class="specimen">
+        <p>"Airtable lacks a strong frontend or app-building platform, requiring third-party tools for client-facing applications &mdash; Notion could capitalize by enhancing its own app-building capabilities."</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 06 Actions -->
+  <section class="section">
+    <div class="section-tab">
+      <div class="section-num">06</div>
+      <div class="section-kind">Decision</div>
+    </div>
+    <div>
+      <h2 class="section-title">Recommended Actions</h2>
+      <div class="section-field">field: recommended_actions — {action, impact 1–5, effort 1–5, rationale}</div>
+      <p class="section-purpose">Where the briefing stops describing the landscape and starts prioritizing a roadmap. Every action is scored, not just listed — so it sorts straight into a quadrant instead of a flat to-do list.</p>
+      <div class="quad-grid">
+        <div class="quad qw"><div class="quad-name">Quick Win</div><div class="quad-def">high impact, low effort</div></div>
+        <div class="quad bb"><div class="quad-name">Big Bet</div><div class="quad-def">high impact, high effort</div></div>
+        <div class="quad fi"><div class="quad-name">Fill-In</div><div class="quad-def">low impact, low effort</div></div>
+        <div class="quad mp"><div class="quad-name">Money Pit</div><div class="quad-def">low impact, high effort</div></div>
+      </div>
+      <div class="specimen" style="margin-top:16px;">
+        <div class="action-row">
+          <span class="action-badge">BIG BET</span>
+          <span class="action-score">I5 / E4</span>
+          <span>Enhance Notion's automation capabilities to match Airtable and Coda.</span>
+        </div>
+        <div class="action-row">
+          <span class="action-badge" style="color:#0a6e52;background:#e7f2ec;">QUICK WIN</span>
+          <span class="action-score">I4 / E2</span>
+          <span>Introduce a more competitive pricing tier for small teams.</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="closing">
+    <div class="closing-head">Design principles behind the schema</div>
+
+    <div class="principle">
+      <div class="principle-mark">&sect;</div>
+      <div>
+        <b>Sourced by construction, not by request.</b>
+        <p>Every dimension's schema requires a sources array — a model can't emit a claim without also emitting where it came from, because the field doesn't validate otherwise.</p>
+      </div>
+    </div>
+    <div class="principle">
+      <div class="principle-mark">&sect;</div>
+      <div>
+        <b>Paired good/bad examples, not adjectives.</b>
+        <p>"Be specific" is not a rule a model can check itself against. A concrete GOOD/BAD pair per field is — it's the difference between a briefing and a mad-lib.</p>
+      </div>
+    </div>
+    <div class="principle">
+      <div class="principle-mark">&sect;</div>
+      <div>
+        <b>Score the recommendation, don't just make it.</b>
+        <p>A list of ideas isn't a roadmap input. Impact/effort scoring is what lets "recommended actions" sort into a decision instead of a wishlist.</p>
+      </div>
+    </div>
+    <div class="principle">
+      <div class="principle-mark">&sect;</div>
+      <div>
+        <b>An empty field is a valid answer.</b>
+        <p>When research turns up nothing for a dimension, the template ships an honest empty sources list — not a borrowed link dressed up to look sourced.</p>
+      </div>
+    </div>
+
+    <div class="colophon">
+      <span>Radar — Competitive Intelligence Agent</span>
+      <span>Schema defined in models.py · Pydantic v2</span>
+    </div>
+  </div>
+
+</div>

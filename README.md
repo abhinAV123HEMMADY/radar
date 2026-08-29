@@ -8,6 +8,19 @@ actions scored on an impact/effort matrix (Quick Win / Big Bet / Fill-In / Money
 
 **Live app:** https://io7hxxdsqhswhud9lngnwm.streamlit.app
 
+## PM artifacts
+
+- **[Briefing template](docs/template.html)** — the design spec behind the schema:
+  what each of the 6 sections is for, its field-level rule, and a real specimen from
+  the tool for each. ([hosted view](https://claude.ai/code/artifact/93207226-d614-4881-881f-e902c43c7226))
+- **[Sample briefings](docs/samples.html)** — three complete, unedited runs (Notion,
+  Linear, Figma), generated straight from the underlying JSON in
+  [`docs/sample-data/`](docs/sample-data) by [`docs/generate_samples.py`](docs/generate_samples.py)
+  — nothing hand-transcribed. ([hosted view](https://claude.ai/code/artifact/66fdd090-572b-4aee-b45d-0bb133553aad))
+
+The `docs/*.html` files are plain static pages — GitHub shows their source when
+viewed in-repo; open them locally or via the hosted links above to see them rendered.
+
 ## How it works
 
 1. **Discovery** — one search + one small LLM call finds the company's 4 real
@@ -54,6 +67,10 @@ Pydantic
 | `main.py` | CLI entry point (`python main.py <company>`) |
 | `scripts/keep_alive.py` | Visits the deployed app with a real headless browser (see below) |
 | `.github/workflows/keep-alive.yml` | Runs the keep-alive script on a schedule |
+| `docs/template.html` | Briefing template design spec |
+| `docs/samples.html` | Three real sample briefings (generated, not hand-written) |
+| `docs/sample-data/*.json` | The raw `CompetitiveBriefing` output backing `samples.html` |
+| `docs/generate_samples.py` | Rebuilds `samples.html` from `sample-data/*.json` |
 
 ## Running locally
 
