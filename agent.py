@@ -1,7 +1,9 @@
 import asyncio
+import json
 import os
 import re
 import sys
+from datetime import datetime, timezone
 from pathlib import Path
 
 from pydantic import BaseModel, Field
@@ -13,6 +15,39 @@ from langchain_mcp_adapters.client import MultiServerMCPClient
 from models import CompetitiveBriefing, CompetitorAnalysis, BriefingOverview
 
 _MCP_SERVER_SCRIPT = Path(__file__).parent / "mcp_server.py"
+
+# Live web search isn't repeatable (rankings/pages change over time) and LLMs
+# aren't bit-identical across calls even at temperature=0 — so instead of
+# chasing determinism in the live pipeline, cache the finished briefing per
+# company. Same company, same answer, every time, and instantly on repeat.
+_CACHE_DIR = Path(__file__).parent / "cache"
+
+
+def _cache_path(company: str) -> Path:
+    slug = re.sub(r"[^a-z0-9]+", "_", company.strip().lower()).strip("_")
+    return _CACHE_DIR / f"{slug}.json"
+
+
+def load_cached_briefing(company: str) -> tuple[CompetitiveBriefing, str] | None:
+    """Returns (briefing, cached_at_iso) if a cached result exists, else None."""
+    path = _cache_path(company)
+    if not path.exists():
+        return None
+    try:
+        data = json.loads(path.read_text())
+        return CompetitiveBriefing.model_validate(data["briefing"]), data["cached_at"]
+    except Exception as exc:
+        print(f"Cache read failed for '{company}', ignoring: {exc}")
+        return None
+
+
+def save_cached_briefing(company: str, briefing: CompetitiveBriefing) -> None:
+    _CACHE_DIR.mkdir(exist_ok=True)
+    payload = {
+        "cached_at": datetime.now(timezone.utc).isoformat(),
+        "briefing": briefing.model_dump(),
+    }
+    _cache_path(company).write_text(json.dumps(payload, indent=2))
 _URL_RE = re.compile(r"https?://[^\s\)\]]+")
 
 # The 5 research queries per competitor are fixed templates, not something an LLM
@@ -328,14 +363,22 @@ async def synthesize_briefing(
     )
 
 
-async def _run_competitive_intelligence_async(company: str) -> CompetitiveBriefing:
+async def _run_competitive_intelligence_async(company: str, force_refresh: bool = False) -> CompetitiveBriefing:
+    if not force_refresh:
+        cached = load_cached_briefing(company)
+        if cached is not None:
+            briefing, cached_at = cached
+            print(f"\nUsing cached briefing for '{company}' (cached {cached_at}).")
+            return briefing
+
     print(f"\nResearching competitors of '{company}' ...")
     research_notes, competitors, per_competitor_notes = await gather_research_notes(company)
     print(f"\nResearch complete ({len(research_notes)} chars, {len(competitors)} competitors). Synthesising briefing ...")
 
     briefing = await synthesize_briefing(company, research_notes, competitors, per_competitor_notes)
+    save_cached_briefing(company, briefing)
     return briefing
 
 
-def run_competitive_intelligence(company: str) -> CompetitiveBriefing:
-    return asyncio.run(_run_competitive_intelligence_async(company))
+def run_competitive_intelligence(company: str, force_refresh: bool = False) -> CompetitiveBriefing:
+    return asyncio.run(_run_competitive_intelligence_async(company, force_refresh))

@@ -4,7 +4,7 @@ from pathlib import Path
 import streamlit as st
 from dotenv import load_dotenv
 
-from agent import gather_research_notes, synthesize_briefing
+from agent import gather_research_notes, synthesize_briefing, load_cached_briefing, save_cached_briefing
 from models import CompetitiveBriefing
 
 load_dotenv(Path(__file__).parent / ".env")
@@ -403,16 +403,36 @@ with st.container(key="hero"):
         with col_btn:
             run = st.button("Search", type="primary", use_container_width=True, disabled=not company)
 
+    force_refresh = st.checkbox(
+        "Force fresh search (ignore cache)",
+        help="Same company always returns the same cached briefing. Check this to re-run research from scratch.",
+    )
+
 # ── Analysis ──────────────────────────────────────────────────────────────────
 if run and company:
     with st.container(key="results"):
-        with st.spinner("Scanning the competitive landscape..."):
+        cached = None if force_refresh else load_cached_briefing(company)
 
-            async def _run_analysis() -> CompetitiveBriefing:
-                research_notes, competitors, per_competitor_notes = await gather_research_notes(company)
-                return await synthesize_briefing(company, research_notes, competitors, per_competitor_notes)
+        if cached is not None:
+            briefing, cached_at = cached
+        else:
+            with st.spinner("Scanning the competitive landscape..."):
 
-            briefing: CompetitiveBriefing = asyncio.run(_run_analysis())
+                async def _run_analysis() -> CompetitiveBriefing:
+                    research_notes, competitors, per_competitor_notes = await gather_research_notes(company)
+                    return await synthesize_briefing(company, research_notes, competitors, per_competitor_notes)
+
+                briefing: CompetitiveBriefing = asyncio.run(_run_analysis())
+                save_cached_briefing(company, briefing)
+                cached_at = None
+
+        if cached_at:
+            st.markdown(
+                f'<div style="font-size:0.8rem;color:#9ca3af;margin-bottom:1rem;">'
+                f'Cached result from {cached_at[:10]} — same company always returns this exact briefing. '
+                f'Check "Force fresh search" above to re-run.</div>',
+                unsafe_allow_html=True,
+            )
 
         # ── Executive Summary ──────────────────────────────────────────────────
         st.markdown('<div class="section-label">Executive Summary</div>', unsafe_allow_html=True)
