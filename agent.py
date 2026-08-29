@@ -1,17 +1,12 @@
 import asyncio
 import os
-import sys
-from pathlib import Path
 
 from pydantic import BaseModel, Field
 from langchain_openai import ChatOpenAI
 from langchain_core.tools import tool
 from langchain_core.prompts import ChatPromptTemplate
-from langchain_mcp_adapters.client import MultiServerMCPClient
 
 from models import CompetitiveBriefing, CompetitorAnalysis, BriefingOverview
-
-_MCP_SERVER_SCRIPT = Path(__file__).parent / "mcp_server.py"
 
 # The 5 research queries per competitor are fixed templates, not something an LLM
 # needs to decide turn-by-turn — so the whole research phase runs as one wave of
@@ -244,27 +239,6 @@ async def synthesize_briefing(company: str, research_notes: str, competitors: li
         feature_comparison=overview.feature_comparison,
         recommended_actions=overview.recommended_actions,
     )
-
-
-async def get_research_tools() -> list:
-    """Web search tool plus any tools exposed by the local MCP fetch server.
-
-    Not used by the default research flow (gather_research_notes runs search calls
-    directly). Kept available for callers that want fetch_page's full-page-text pull.
-    """
-    tools = [_make_search_tool()]
-    try:
-        client = MultiServerMCPClient({
-            "compintel-fetch": {
-                "command": sys.executable,
-                "args": [str(_MCP_SERVER_SCRIPT)],
-                "transport": "stdio",
-            }
-        })
-        tools.extend(await client.get_tools())
-    except Exception as exc:
-        print(f"MCP tools unavailable, continuing with search only: {exc}")
-    return tools
 
 
 async def _run_competitive_intelligence_async(company: str) -> CompetitiveBriefing:
