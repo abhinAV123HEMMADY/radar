@@ -403,15 +403,23 @@ with st.container(key="hero"):
         with col_btn:
             run = st.button("Search", type="primary", use_container_width=True, disabled=not company)
 
-    force_refresh = st.checkbox(
-        "Force fresh search (ignore cache)",
-        help="Same company always returns the same cached briefing. Check this to re-run research from scratch.",
-    )
+# A new search always tries the cache first (same company -> same instant answer).
+# Re-running fresh is only offered contextually, next to the cache notice below,
+# once there's an actual cached result on screen to explain what it means.
+if "displayed_company" not in st.session_state:
+    st.session_state.displayed_company = None
+    st.session_state.force_refresh = False
+
+if run and company:
+    st.session_state.displayed_company = company
+    st.session_state.force_refresh = False
 
 # ── Analysis ──────────────────────────────────────────────────────────────────
-if run and company:
+if st.session_state.displayed_company:
+    company = st.session_state.displayed_company
     with st.container(key="results"):
-        cached = None if force_refresh else load_cached_briefing(company)
+        cached = None if st.session_state.force_refresh else load_cached_briefing(company)
+        st.session_state.force_refresh = False
 
         if cached is not None:
             briefing, cached_at = cached
@@ -427,12 +435,19 @@ if run and company:
                 cached_at = None
 
         if cached_at:
-            st.markdown(
-                f'<div style="font-size:0.8rem;color:#9ca3af;margin-bottom:1rem;">'
-                f'Cached result from {cached_at[:10]} — same company always returns this exact briefing. '
-                f'Check "Force fresh search" above to re-run.</div>',
-                unsafe_allow_html=True,
-            )
+            col_note, col_btn = st.columns([5, 1.3])
+            with col_note:
+                st.markdown(
+                    f'<div style="font-size:0.8rem;color:#9ca3af;padding-top:6px;">'
+                    f'Showing a saved result from {cached_at[:10]} — searching "{company}" again always '
+                    f'returns this same briefing.</div>',
+                    unsafe_allow_html=True,
+                )
+            with col_btn:
+                if st.button("Run fresh search", key="refresh_btn", use_container_width=True):
+                    st.session_state.force_refresh = True
+                    st.rerun()
+            st.markdown("<br>", unsafe_allow_html=True)
 
         # ── Executive Summary ──────────────────────────────────────────────────
         st.markdown('<div class="section-label">Executive Summary</div>', unsafe_allow_html=True)
