@@ -489,7 +489,18 @@ if run and company:
 
         # ── Recommended Actions ──────────────────────────────────────────────────
         st.markdown("<br>", unsafe_allow_html=True)
-        st.markdown('<div class="section-label">Recommended Actions — Impact / Effort</div>', unsafe_allow_html=True)
+        st.markdown('<div class="section-label">Recommended Actions</div>', unsafe_allow_html=True)
+        st.markdown(
+            "<div style='font-size:0.82rem;color:#6b7280;margin-top:-0.5rem;margin-bottom:1rem;line-height:1.6;'>"
+            "Each action is scored 1-5 on <b>impact</b> (how much it improves competitive position) and "
+            "<b>effort</b> (engineering/GTM lift to execute), then bucketed: "
+            "<b style='color:#059669;'>Quick Win</b> = high impact, low effort &middot; "
+            "<b style='color:#4338ca;'>Big Bet</b> = high impact, high effort &middot; "
+            "<b style='color:#6b7280;'>Fill-In</b> = low impact, low effort &middot; "
+            "<b style='color:#d97706;'>Money Pit</b> = low impact, high effort."
+            "</div>",
+            unsafe_allow_html=True,
+        )
 
         def _quadrant(impact: int, effort: int) -> tuple[str, str]:
             if impact >= 3 and effort <= 2:
@@ -507,7 +518,7 @@ if run and company:
             st.markdown(
                 f'<div class="action-item">'
                 f'<span class="priority-badge {css_class}">{label}</span>'
-                f'<span style="color:#9ca3af;font-size:0.75rem">I{item.impact}/E{item.effort}</span> '
+                f'<span style="color:#9ca3af;font-size:0.75rem">&nbsp;Impact {item.impact} &middot; Effort {item.effort}</span> '
                 f'<b>{i}.</b> {item.action}{rationale_html}'
                 f'</div>',
                 unsafe_allow_html=True,
