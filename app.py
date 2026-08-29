@@ -109,7 +109,8 @@ small { color: var(--faint) !important; }
     background: #ffffff;
     border: 1.5px solid var(--border-strong);
     border-radius: 14px !important;
-    padding: 8px 8px 8px 4px;
+    padding: 8px 14px 8px 4px;
+    gap: 12px;
     align-items: center;
     box-shadow: 0 1px 2px rgba(0,0,0,0.04);
     transition: border-color 0.15s ease, box-shadow 0.15s ease;
@@ -408,8 +409,8 @@ if run and company:
         with st.spinner("Scanning the competitive landscape..."):
 
             async def _run_analysis() -> CompetitiveBriefing:
-                research_notes, competitors = await gather_research_notes(company)
-                return await synthesize_briefing(company, research_notes, competitors)
+                research_notes, competitors, per_competitor_notes = await gather_research_notes(company)
+                return await synthesize_briefing(company, research_notes, competitors, per_competitor_notes)
 
             briefing: CompetitiveBriefing = asyncio.run(_run_analysis())
 

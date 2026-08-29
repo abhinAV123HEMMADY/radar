@@ -1,12 +1,19 @@
 import asyncio
 import os
+import re
+import sys
+from pathlib import Path
 
 from pydantic import BaseModel, Field
 from langchain_openai import ChatOpenAI
 from langchain_core.tools import tool
 from langchain_core.prompts import ChatPromptTemplate
+from langchain_mcp_adapters.client import MultiServerMCPClient
 
 from models import CompetitiveBriefing, CompetitorAnalysis, BriefingOverview
+
+_MCP_SERVER_SCRIPT = Path(__file__).parent / "mcp_server.py"
+_URL_RE = re.compile(r"https?://[^\s\)\]]+")
 
 # The 5 research queries per competitor are fixed templates, not something an LLM
 # needs to decide turn-by-turn — so the whole research phase runs as one wave of
@@ -72,15 +79,17 @@ it appears in the notes.
 REQUIREMENTS — follow these exactly:
 1. Every DimensionData.content must be 3-5 sentences covering the key facts for that dimension \
    with specific details (numbers, names, dates).
-2. Every DimensionData.sources list MUST contain at least 3-5 SourceCitation entries. \
-   Use every URL from the research notes for that dimension. NEVER leave sources empty.
+2. Every DimensionData.sources list MUST contain 3-5 SourceCitation entries, ONLY drawn from that \
+   dimension's own "Query: ..." block in the research notes — never borrow a URL from a different \
+   dimension's block just to fill the list.
 3. Each SourceCitation.summary must state the actual facts from that URL — real numbers, \
    feature names, or direct claims. \
    GOOD: "$11.99/month for Prime, $14.99 standalone; includes HD audio and offline downloads." \
    BAD: "Outlines pricing plans." or "Describes Amazon Music's features."
-4. If research notes contain no information for a dimension, write \
-   "No public information found." in content and still include whatever URLs are most relevant \
-   from this competitor's research.
+4. If the research notes' block for a dimension has no usable information, write \
+   "No public information found." in content and leave that dimension's sources list EMPTY. \
+   Do not attach a URL from another dimension or a generic "X is a competitor of Y" mention just \
+   to avoid an empty list — an empty sources list is correct when there is nothing to cite.
 5. key_threats: 3-5 items. Name the exact feature, bundle, pricing lever, or distribution \
    advantage that is the threat. Never write vague statements like "has a large user base" — \
    say WHY that specific thing is dangerous and what it blocks. \
@@ -98,10 +107,10 @@ COMPETITOR_HUMAN = """\
 Company being analysed: {company}
 Competitor to profile: {competitor}
 
-Research notes (cover all competitors — extract only {competitor}'s data):
+Research notes for {competitor} (already scoped to just this competitor):
 {research_notes}
 
-Produce the complete CompetitorAnalysis for {competitor} only.\
+Produce the complete CompetitorAnalysis for {competitor}.\
 """
 
 
@@ -161,13 +170,52 @@ async def discover_competitors(company: str, search_tool, llm) -> tuple[list[str
     return competitors, f"Query: {discovery_query}\n{raw}"
 
 
-async def gather_research_notes(company: str, search_tool=None, llm=None) -> tuple[str, list[str]]:
+async def _get_fetch_tool():
+    """MCP fetch_page tool, or None if the MCP server can't be reached.
+
+    mcp_server.py runs as a subprocess over stdio via langchain-mcp-adapters and
+    returns full page text, used to enrich thin search snippets below.
+    """
+    try:
+        client = MultiServerMCPClient({
+            "compintel-fetch": {
+                "command": sys.executable,
+                "args": [str(_MCP_SERVER_SCRIPT)],
+                "transport": "stdio",
+            }
+        })
+        tools = await client.get_tools()
+        return next((t for t in tools if t.name == "fetch_page"), None)
+    except Exception as exc:
+        print(f"MCP fetch tool unavailable, continuing with search snippets only: {exc}")
+        return None
+
+
+def _is_thin(result: str) -> bool:
+    return (
+        len(result) < 400
+        or "No results found" in result
+        or "Search failed" in result
+        or "Search timed out" in result
+    )
+
+
+async def _fetch_text(fetch_tool, url: str) -> str:
+    raw = await asyncio.wait_for(fetch_tool.ainvoke({"url": url}), timeout=12)
+    if isinstance(raw, list):
+        return " ".join(part.get("text", "") for part in raw if isinstance(part, dict))
+    return str(raw)
+
+
+async def gather_research_notes(company: str, search_tool=None, llm=None) -> tuple[str, list[str], dict[str, str]]:
     """Run the whole research phase as one wave of concurrent search calls.
 
     The 5 queries per competitor are fixed templates (see DIMENSION_QUERY_TEMPLATES),
     so there's nothing for an LLM to decide turn-by-turn — running them concurrently
     is simpler and far faster than an agentic tool-call loop. Returns (research_notes,
-    competitor_names).
+    competitor_names, per_competitor_notes) — the last one has each competitor's own
+    5 dimension results pre-sliced, so the synthesis step never has to locate the
+    right section inside a blob shared across all competitors.
     """
     search_tool = search_tool or _make_search_tool()
     # gpt-4o-mini, not a Groq fast-path: this single small extraction call isn't a
@@ -177,6 +225,7 @@ async def gather_research_notes(company: str, search_tool=None, llm=None) -> tup
     llm = llm or ChatOpenAI(model="gpt-4o-mini", temperature=0)
 
     competitors, discovery_pair = await discover_competitors(company, search_tool, llm)
+    fetch_tool = await _get_fetch_tool()
 
     dimension_queries = [
         template.format(c=comp, company=company)
@@ -184,28 +233,62 @@ async def gather_research_notes(company: str, search_tool=None, llm=None) -> tup
         for template in DIMENSION_QUERY_TEMPLATES.values()
     ]
 
-    sem = asyncio.Semaphore(8)
+    search_sem = asyncio.Semaphore(8)
+    fetch_sem = asyncio.Semaphore(6)
 
     async def run_query(query: str) -> str:
-        async with sem:
+        async with search_sem:
             result = await asyncio.to_thread(search_tool.invoke, {"query": query})
+        # A thin/empty snippet doesn't necessarily mean no page exists — pull the
+        # first URL's full text instead of letting synthesis see nothing at all.
+        if fetch_tool is not None and _is_thin(result):
+            match = _URL_RE.search(result)
+            if match:
+                url = match.group(0).rstrip(".,;:")
+                try:
+                    async with fetch_sem:
+                        full_text = await _fetch_text(fetch_tool, url)
+                    if len(full_text) > len(result):
+                        result = f"{result}\n\n[Full page text from {url}]:\n{full_text[:4000]}"
+                except Exception as exc:
+                    result = f"{result}\n\n[fetch_page failed for a thin result: {exc}]"
         return f"Query: {query}\n{result}"
 
-    pairs = [discovery_pair] + await asyncio.gather(*(run_query(q) for q in dimension_queries))
+    dimension_pairs = await asyncio.gather(*(run_query(q) for q in dimension_queries))
 
     all_queries = [f"{company} top competitors 2025"] + dimension_queries
     query_log = "\n".join(f"Searching: {q}" for q in all_queries)
-    raw_results = "\n\n---\n\n".join(pairs)
+    raw_results = "\n\n---\n\n".join([discovery_pair] + dimension_pairs)
     research_notes = (
         f"SEARCHES COMPLETED (every company that appears here is a competitor "
         f"and must have its own profile):\n{query_log}"
         f"\n\n{'='*60}\n\nFULL SEARCH RESULTS:\n{raw_results}"
     )
-    return research_notes, competitors
+
+    n_dims = len(DIMENSION_QUERY_TEMPLATES)
+    per_competitor_notes = {
+        comp: "\n\n---\n\n".join(dimension_pairs[i * n_dims:(i + 1) * n_dims])
+        for i, comp in enumerate(competitors)
+    }
+
+    return research_notes, competitors, per_competitor_notes
 
 
-async def synthesize_briefing(company: str, research_notes: str, competitors: list[str]) -> CompetitiveBriefing:
-    """Overview + one profile per competitor, all generated concurrently (see note above)."""
+async def synthesize_briefing(
+    company: str,
+    research_notes: str,
+    competitors: list[str],
+    per_competitor_notes: dict[str, str] | None = None,
+) -> CompetitiveBriefing:
+    """Overview + one profile per competitor, all generated concurrently (see note above).
+
+    Each competitor call gets ONLY that competitor's own research notes (pre-sliced by
+    gather_research_notes), not the full multi-competitor blob — this was found to be
+    necessary: given the shared blob, the model would sometimes fail to locate one
+    competitor's section at all and report "No public information found" despite the
+    data being present, then backfill unrelated URLs as sources to avoid an empty list.
+    """
+    per_competitor_notes = per_competitor_notes or {c: research_notes for c in competitors}
     overview_llm = ChatOpenAI(model="gpt-4o", temperature=0).with_structured_output(BriefingOverview)
     competitor_llm = ChatOpenAI(model="gpt-4o", temperature=0).with_structured_output(CompetitorAnalysis)
 
@@ -224,7 +307,11 @@ async def synthesize_briefing(company: str, research_notes: str, competitors: li
         "research_notes": research_notes,
     })
     competitor_tasks = [
-        competitor_chain.ainvoke({"company": company, "competitor": c, "research_notes": research_notes})
+        competitor_chain.ainvoke({
+            "company": company,
+            "competitor": c,
+            "research_notes": per_competitor_notes.get(c, research_notes),
+        })
         for c in competitors
     ]
 
@@ -243,10 +330,10 @@ async def synthesize_briefing(company: str, research_notes: str, competitors: li
 
 async def _run_competitive_intelligence_async(company: str) -> CompetitiveBriefing:
     print(f"\nResearching competitors of '{company}' ...")
-    research_notes, competitors = await gather_research_notes(company)
+    research_notes, competitors, per_competitor_notes = await gather_research_notes(company)
     print(f"\nResearch complete ({len(research_notes)} chars, {len(competitors)} competitors). Synthesising briefing ...")
 
-    briefing = await synthesize_briefing(company, research_notes, competitors)
+    briefing = await synthesize_briefing(company, research_notes, competitors, per_competitor_notes)
     return briefing
 
 
