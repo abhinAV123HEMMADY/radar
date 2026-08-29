@@ -3,22 +3,101 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Radar — PM Artifacts</title>
+<title>Radar — Design Spec & Samples</title>
 <style>
-  body{font-family:system-ui,sans-serif;max-width:640px;margin:80px auto;padding:0 24px;color:#111827;}
-  h1{font-size:1.6rem;margin-bottom:6px;}
-  p{color:#6b7280;line-height:1.6;}
-  a.card{display:block;border:1px solid #e5e7eb;border-radius:10px;padding:16px 20px;margin-top:16px;text-decoration:none;color:inherit;}
-  a.card:hover{border-color:#4f46e5;}
-  a.card b{color:#4f46e5;}
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+:root{
+  --ink:#111827; --body:#374151; --muted:#6b7280; --faint:#9ca3af;
+  --border:#e5e7eb; --border-strong:#d1d5db;
+  --accent:#4f46e5; --accent-hover:#4338ca; --accent-light:#eef2ff; --accent-border:#c7d2fe;
+  --page:#f9f8f6;
+}
+*{box-sizing:border-box;}
+body{
+  margin:0; background:#ffffff; color:var(--body);
+  font-family:'Inter',sans-serif; min-height:100vh;
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  padding:64px 24px;
+}
+.wrap{max-width:640px; width:100%; text-align:center;}
+
+.eyebrow{
+  display:inline-block; background:var(--accent-light); border:1px solid var(--accent-border);
+  color:var(--accent-hover); font-size:.78rem; font-weight:600; padding:5px 14px;
+  border-radius:100px; margin-bottom:22px;
+}
+h1{
+  font-size:clamp(2.1rem,5vw,2.7rem); font-weight:800; letter-spacing:-.02em;
+  color:var(--ink); margin:0 0 12px; text-wrap:balance;
+}
+.dek{color:var(--muted); font-size:1.02rem; line-height:1.6; margin:0 0 40px;}
+
+.cards{display:flex; flex-direction:column; gap:10px; text-align:left;}
+a.card{
+  display:flex; align-items:center; gap:16px;
+  background:#fff; border:1px solid var(--border); border-radius:12px;
+  padding:18px 20px; text-decoration:none; color:inherit;
+  transition:border-color .15s ease, box-shadow .15s ease, transform .1s ease;
+}
+a.card:hover{border-color:var(--accent-border); box-shadow:0 4px 16px rgba(79,70,229,.1); transform:translateY(-1px);}
+.card-icon{
+  flex-shrink:0; width:40px; height:40px; border-radius:9px;
+  background:var(--accent-light); color:var(--accent); display:flex; align-items:center; justify-content:center;
+  font-size:1.15rem;
+}
+.card-body{flex:1;}
+.card-title{font-weight:600; color:var(--ink); font-size:.98rem; margin-bottom:2px;}
+.card-dek{font-size:.85rem; color:var(--muted); line-height:1.4;}
+.card-arrow{color:var(--faint); font-size:1.1rem; transition:transform .15s ease, color .15s ease;}
+a.card:hover .card-arrow{transform:translateX(3px); color:var(--accent);}
+
+footer{margin-top:48px; font-size:.78rem; color:var(--faint);}
+footer a{color:var(--muted);}
 </style>
 </head>
 <body>
-  <h1>Radar — PM Artifacts</h1>
-  <p>Competitive intelligence agent — design spec and sample outputs.</p>
-  <a class="card" href="template.html"><b>Briefing Template &rarr;</b><br>The design spec behind the schema.</a>
-  <a class="card" href="samples.html"><b>Sample Briefings &rarr;</b><br>Three real, unedited runs: Notion, Linear, Figma.</a>
-  <a class="card" href="https://io7hxxdsqhswhud9lngnwm.streamlit.app"><b>Live App &rarr;</b><br>Try it yourself.</a>
-  <a class="card" href="https://github.com/abhinAV123HEMMADY/radar"><b>Source &rarr;</b><br>Full repo on GitHub.</a>
+  <div class="wrap">
+    <div class="eyebrow">AI-powered competitive research</div>
+    <h1>Radar</h1>
+    <p class="dek">Design spec and real sample output for the competitive intelligence agent.</p>
+
+    <div class="cards">
+      <a class="card" href="template.html">
+        <div class="card-icon">&#128203;</div>
+        <div class="card-body">
+          <div class="card-title">Briefing Template</div>
+          <div class="card-dek">The design spec behind the schema — what each section is for and why.</div>
+        </div>
+        <div class="card-arrow">&rarr;</div>
+      </a>
+      <a class="card" href="samples.html">
+        <div class="card-icon">&#128202;</div>
+        <div class="card-body">
+          <div class="card-title">Sample Briefings</div>
+          <div class="card-dek">Three real, unedited runs — Notion, Linear, Figma.</div>
+        </div>
+        <div class="card-arrow">&rarr;</div>
+      </a>
+      <a class="card" href="https://io7hxxdsqhswhud9lngnwm.streamlit.app">
+        <div class="card-icon">&#9889;</div>
+        <div class="card-body">
+          <div class="card-title">Live App</div>
+          <div class="card-dek">Run it yourself on any company.</div>
+        </div>
+        <div class="card-arrow">&rarr;</div>
+      </a>
+      <a class="card" href="https://github.com/abhinAV123HEMMADY/radar">
+        <div class="card-icon">&#128187;</div>
+        <div class="card-body">
+          <div class="card-title">Source</div>
+          <div class="card-dek">Full repo, architecture notes, and build history.</div>
+        </div>
+        <div class="card-arrow">&rarr;</div>
+      </a>
+    </div>
+
+    <footer>Radar — Competitive Intelligence Agent</footer>
+  </div>
 </body>
 </html>

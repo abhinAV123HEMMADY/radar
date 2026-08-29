@@ -8,18 +8,20 @@ actions scored on an impact/effort matrix (Quick Win / Big Bet / Fill-In / Money
 
 **Live app:** https://io7hxxdsqhswhud9lngnwm.streamlit.app
 
-## PM artifacts
+## Design spec & sample output
+
+**Hosted:** https://abhinav123hemmady.github.io/radar/
 
 - **[Briefing template](docs/template.html)** — the design spec behind the schema:
   what each of the 6 sections is for, its field-level rule, and a real specimen from
-  the tool for each. ([hosted view](https://claude.ai/code/artifact/93207226-d614-4881-881f-e902c43c7226))
+  the tool for each.
 - **[Sample briefings](docs/samples.html)** — three complete, unedited runs (Notion,
   Linear, Figma), generated straight from the underlying JSON in
   [`docs/sample-data/`](docs/sample-data) by [`docs/generate_samples.py`](docs/generate_samples.py)
-  — nothing hand-transcribed. ([hosted view](https://claude.ai/code/artifact/66fdd090-572b-4aee-b45d-0bb133553aad))
+  — nothing hand-transcribed.
 
 The `docs/*.html` files are plain static pages — GitHub shows their source when
-viewed in-repo; open them locally or via the hosted links above to see them rendered.
+viewed in-repo; open them locally or via the hosted link above to see them rendered.
 
 ## How it works
 
